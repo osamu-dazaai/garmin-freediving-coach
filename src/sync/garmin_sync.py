@@ -91,8 +91,15 @@ class GarminSync:
             
             # HRV data
             hrv_data = None
+            hrv_avg = None
+            hrv_status = None
             try:
-                hrv_data = self.client.get_hrv_data(date_str)
+                hrv_response = self.client.get_hrv_data(date_str)
+                if hrv_response and 'hrvSummary' in hrv_response:
+                    hrv_summary = hrv_response['hrvSummary']
+                    hrv_avg = hrv_summary.get('lastNightAvg')
+                    hrv_status = hrv_summary.get('status')
+                    hrv_data = hrv_response
             except:
                 pass  # HRV not available for all watches
             
@@ -134,8 +141,8 @@ class GarminSync:
             ''', (
                 date_str,
                 stats.get('restingHeartRate'),
-                hrv_data.get('avgHRV') if hrv_data else None,
-                hrv_data.get('status') if hrv_data else None,
+                hrv_avg,
+                hrv_status,
                 stats.get('averageStressLevel'),
                 stats.get('maxStressLevel'),
                 body_battery[0].get('charged') if body_battery and len(body_battery) > 0 else None,
