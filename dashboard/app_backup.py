@@ -15,16 +15,6 @@ import sys
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
-sys.path.insert(0, str(Path(__file__).parent.parent / 'src' / 'analysis'))
-
-# Import dive analysis modules
-try:
-    from dive_parser import DiveParser
-    from discipline_detector import analyze_and_classify_dive
-    import numpy as np
-    DETECTION_AVAILABLE = True
-except ImportError:
-    DETECTION_AVAILABLE = False
 
 # Mobile-friendly page config
 st.set_page_config(
@@ -330,41 +320,6 @@ def get_last_analyzed_dive():
     
     return result[0] if result else None
 
-def get_dive_classification(activity_id):
-    """
-    Get detailed dive-by-dive classification
-    
-    Returns: List of dives with classification results
-    """
-    if not DETECTION_AVAILABLE:
-        return None
-    
-    try:
-        parser = DiveParser()
-        session = parser.parse_session(activity_id, analyze=True)
-        dives = session['dives']
-        
-        # Calculate session average HR
-        avg_hrs = [d.avg_hr for d in dives if d.avg_hr]
-        if not avg_hrs:
-            return None
-        
-        session_avg_hr = np.mean(avg_hrs)
-        
-        # Classify each dive
-        results = []
-        for dive in dives:
-            classification = analyze_and_classify_dive(dive, session_avg_hr)
-            results.append({
-                'dive': dive,
-                'classification': classification
-            })
-        
-        return results
-    except Exception as e:
-        st.error(f"Classification error: {str(e)}")
-        return None
-
 def calculate_readiness(row):
     """Calculate readiness score from health metrics"""
     score = 0
@@ -545,12 +500,6 @@ elif page == "🤿 Dive Log":
     if len(apnea_activities) > 0:
         st.caption(f"📊 Total sessions: {len(apnea_activities)}")
         
-        # Detection toggle
-        if DETECTION_AVAILABLE:
-            show_detection = st.checkbox("🔬 Show AI Classification", value=True)
-        else:
-            show_detection = False
-        
         # Check for new dives and analyze
         last_analyzed = get_last_analyzed_dive()
         
@@ -582,50 +531,6 @@ elif page == "🤿 Dive Log":
                     # Grade banner
                     st.markdown(f"<div class='dive-card'><h2>Grade: {analysis['overall_grade']}</h2></div>", 
                                unsafe_allow_html=True)
-                    
-                    # AI Classification (if enabled)
-                    if show_detection and DETECTION_AVAILABLE:
-                        classifications = get_dive_classification(dive['garmin_activity_id'])
-                        
-                        if classifications:
-                            st.markdown("### 🔬 AI Classification")
-                            
-                            # Show each dive's classification
-                            for result in classifications:
-                                d = result['dive']
-                                c = result['classification']
-                                
-                                disc = c['discipline']
-                                lung = c['lung_volume']
-                                
-                                # Confidence badge colors
-                                disc_color = "green" if disc['confidence'] >= 70 else "orange" if disc['confidence'] >= 50 else "red"
-                                lung_color = "green" if lung['confidence'] >= 70 else "orange" if lung['confidence'] >= 50 else "red"
-                                
-                                st.markdown(f"""
-                                **Dive {d.dive_number}:** {d.max_depth:.1f}m, {d.avg_hr:.0f} bpm
-                                
-                                - 📋 Discipline: **{disc['value'].upper()}** 
-                                  <span style='background-color:{disc_color};color:white;padding:2px 8px;border-radius:4px;font-size:0.8em'>{disc['confidence']:.0f}%</span>
-                                  
-                                - 🫁 Lung Volume: **{lung['value'].upper()}** 
-                                  <span style='background-color:{lung_color};color:white;padding:2px 8px;border-radius:4px;font-size:0.8em'>{lung['confidence']:.0f}%</span>
-                                """, unsafe_allow_html=True)
-                                
-                                # Show key evidence
-                                if disc['confidence'] >= 60:
-                                    if 'fim_rhythm' in disc['evidence']:
-                                        rhythm = disc['evidence']['fim_rhythm']
-                                        st.caption(f"   → {rhythm['pull_count']} pulls, {rhythm['avg_interval']:.1f}s interval")
-                                
-                                if lung['confidence'] >= 60:
-                                    hr_diff = lung['evidence'].get('hr_diff_from_avg', 0)
-                                    if 'low_hr' in lung['evidence']:
-                                        st.caption(f"   → Low HR ({hr_diff:+.0f} bpm from session avg)")
-                                    elif 'high_hr' in lung['evidence']:
-                                        st.caption(f"   → High HR ({hr_diff:+.0f} bpm from session avg)")
-                            
-                            st.divider()
                     
                     # Stats grid - mobile friendly
                     cols = st.columns(2)

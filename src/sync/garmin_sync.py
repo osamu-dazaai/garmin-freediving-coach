@@ -128,6 +128,23 @@ class GarminSync:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
+            # Extract sleep data from nested dailySleepDTO
+            sleep_dto = sleep_data.get('dailySleepDTO') if sleep_data else None
+            sleep_score = None
+            sleep_duration = None
+            sleep_deep = None
+            sleep_light = None
+            sleep_rem = None
+            sleep_awake = None
+            
+            if sleep_dto:
+                sleep_score = sleep_dto.get('sleepScores', {}).get('overall', {}).get('value')
+                sleep_duration = sleep_dto.get('sleepTimeSeconds', 0) // 60 if sleep_dto.get('sleepTimeSeconds') else None
+                sleep_deep = sleep_dto.get('deepSleepSeconds', 0) // 60 if sleep_dto.get('deepSleepSeconds') else None
+                sleep_light = sleep_dto.get('lightSleepSeconds', 0) // 60 if sleep_dto.get('lightSleepSeconds') else None
+                sleep_rem = sleep_dto.get('remSleepSeconds', 0) // 60 if sleep_dto.get('remSleepSeconds') else None
+                sleep_awake = sleep_dto.get('awakeSleepSeconds', 0) // 60 if sleep_dto.get('awakeSleepSeconds') else None
+            
             cursor.execute('''
                 INSERT OR REPLACE INTO health_metrics (
                     date, resting_hr, hrv_avg, hrv_status,
@@ -147,12 +164,12 @@ class GarminSync:
                 stats.get('maxStressLevel'),
                 body_battery[0].get('charged') if body_battery and len(body_battery) > 0 else None,
                 body_battery[0].get('drained') if body_battery and len(body_battery) > 0 else None,
-                sleep_data.get('sleepScores', {}).get('overall', {}).get('value') if sleep_data else None,
-                sleep_data.get('sleepTimeSeconds', 0) // 60 if sleep_data else None,  # Convert to minutes
-                sleep_data.get('deepSleepSeconds', 0) // 60 if sleep_data else None,
-                sleep_data.get('lightSleepSeconds', 0) // 60 if sleep_data else None,
-                sleep_data.get('remSleepSeconds', 0) // 60 if sleep_data else None,
-                sleep_data.get('awakeSleepSeconds', 0) // 60 if sleep_data else None,
+                sleep_score,
+                sleep_duration,
+                sleep_deep,
+                sleep_light,
+                sleep_rem,
+                sleep_awake,
                 stats.get('averageSpo2'),
                 stats.get('vo2Max'),
                 stats.get('totalKilocalories'),
