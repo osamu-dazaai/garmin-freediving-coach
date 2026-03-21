@@ -341,16 +341,16 @@ def bnav(page):
     for key, icon, lbl in items:
         cls = "ni on" if page == key else "ni"
         fill = "fill" if page == key else ""
-        links += f'<a href="?page={key}" class="{cls}"><span class="mi {fill} ni-icon">{icon}</span><span class="ni-lbl">{lbl}</span></a>'
+        links += f'<a href="?page={key}" target="_self" class="{cls}"><span class="mi {fill} ni-icon">{icon}</span><span class="ni-lbl">{lbl}</span></a>'
     return f'<nav class="bnav"><div class="bnav-inner">{links}</div></nav>'
 
 def topbar_html(title="", logo=True):
     logo_part = '<div class="topbar-logo"><span class="mi" style="color:#00F0FF;font-size:18px">terminal</span>NAVIGATOR_01</div>' if logo else '<div></div>'
     right = (
         '<div style="display:flex;align-items:center;gap:12px">'
-        '<a href="?action=sync" title="Sync Garmin" style="color:#00F0FF;text-decoration:none;opacity:0.8">'
+        '<a href="?action=sync" target="_self" title="Sync Garmin" style="color:#00F0FF;text-decoration:none;opacity:0.8">'
         '<span class="mi" style="font-size:20px">sync</span></a>'
-        '<a href="?page=profile" style="color:#00F0FF;text-decoration:none">'
+        '<a href="?page=profile" target="_self" style="color:#00F0FF;text-decoration:none">'
         '<span class="mi" style="font-size:20px">settings</span></a>'
         '</div>'
     )
@@ -485,7 +485,7 @@ def screen_log():
     periods = [("ALL","All Time"), ("1M","This Month"), ("3M","Last 3 Months"), ("DEEP","5m+ Dives")]
 
     filter_links = "".join(
-        f'<a href="?page=log&log_filter={k}" class="fb {"on" if k==filt else "off"}">{v}</a>'
+        f'<a href="?page=log&log_filter={k}" target="_self" class="fb {"on" if k==filt else "off"}">{v}</a>'
         for k, v in periods
     )
 
@@ -614,7 +614,7 @@ def screen_protocol():
   </div>
   <div class="pfoot" style="margin-top:14px">
     <div class="pbar-bg"><div class="pbar" style="width:{p['pct']}%;background:{p['color']}70"></div></div>
-    <a href="?page=protocol&proto={p['key']}" style="display:flex;align-items:center;gap:4px;text-decoration:none;color:{p['color']};font-family:\'Space Grotesk\',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;white-space:nowrap;margin-left:12px">START<span class="mi" style="font-size:16px">play_arrow</span></a>
+    <a href="?page=protocol&proto={p['key']}" target="_self" style="display:flex;align-items:center;gap:4px;text-decoration:none;color:{p['color']};font-family:\'Space Grotesk\',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;white-space:nowrap;margin-left:12px">START<span class="mi" style="font-size:16px">play_arrow</span></a>
   </div>
 </div>"""
 
