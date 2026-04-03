@@ -1,223 +1,202 @@
-# Garmin Freediving Coach 🌊🤿
+# ApneaOS 🌊🤿
 
-**AI-powered freediving training & nutrition optimization using Garmin Descent G1 data**
+**AI-powered freediving training coach — Garmin data + React Native mobile app**
 
-![Status](https://img.shields.io/badge/status-feasibility%20complete-green)
-![Phase](https://img.shields.io/badge/phase-planning-blue)
+![Status](https://img.shields.io/badge/status-live-brightgreen)
+![Backend](https://img.shields.io/badge/backend-FastAPI%20%2F%20Python-blue)
+![Mobile](https://img.shields.io/badge/mobile-Expo%20React%20Native-purple)
 
 ---
 
 ## What is This?
 
-A comprehensive system that:
-1. **Extracts** all data from your Garmin Descent G1 watch (dives, HR, HRV, sleep, stress)
-2. **Analyzes** your recovery, training load, and dive progression
-3. **Recommends** personalized training plans and nutrition
-4. **Tracks** long-term trends and helps you reach new personal bests
+ApneaOS is a personal freediving coach that lives on your phone. It pulls data from your Garmin watch, analyzes your dives, tracks recovery, and helps you push to new personal bests — all stored privately on your own server.
 
-Built specifically for freediving, leveraging science-backed metrics like HRV for recovery monitoring.
+**Core loop:**
+```
+Garmin Connect → Python backend (FastAPI) → SQLite → Expo mobile app
+```
 
 ---
 
-## Features
+## Current Architecture
 
-### ✅ Feasibility Confirmed (See [FEASIBILITY.md](FEASIBILITY.md))
+### Backend — Python / FastAPI
+- **Path:** `backend/`
+- **Port:** 8504
+- **Stack:** FastAPI, SQLite, python-garminconnect, garth
+- **Routers:** sessions, dives, health, readiness, goals, analytics, protocols, manual log
 
-- **Data Extraction:** Complete access to Garmin Connect via `python-garminconnect`
-- **Dive Tracking:** Depth, duration, HR, surface intervals, progression
-- **Recovery Monitoring:** HRV trends, sleep quality, Body Battery, training load
-- **Training Plans:** CO2/O2 tables, depth progression, dynamic apnea
-- **Nutrition:** Personalized macros, meal timing, hydration, supplements
-- **Dashboard:** Real-time visualization of all metrics
+### Mobile — Expo React Native
+- **Path:** `mobile/`
+- **Port:** 8081 (Expo dev server)
+- **Stack:** Expo, React Native, React Query, Apollo-style local state
+- **Screens:** Dashboard, Session Detail, Dive Detail, Analytics, Goals, Profile
 
 ---
 
-## System Architecture
+## What's Built
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for full technical details.
+### ✅ Data & Sync
+- Full Garmin Connect data extraction (dives, HR, HRV, sleep, stress, Body Battery)
+- FIT file parsing for raw dive profiles
+- Manual dive log entry
 
-**High-level flow:**
-```
-Watch → Garmin Connect → API → Database → Analysis → Recommendations → Dashboard
-```
+### ✅ Dive Tracking
+- Session list with depth, bottom time, dive count, surface intervals
+- Per-dive detail: depth profile, HR during apnea, mammalian dive reflex tracking
+- AI discipline classification (CWT, FIM, DNF, DYN, STA, etc.)
+- Personal best detection and history
 
-**Key components:**
-- `garmin_sync.py` - Daily data extraction
-- `analyzer.py` - HRV, sleep, readiness scoring
-- `dive_tracker.py` - Dive session analysis
-- `coach.py` - AI training recommendations
-- `nutrition.py` - Nutrition optimization
-- `dashboard/` - Streamlit web interface
+### ✅ Recovery & Readiness
+- HRV trend analysis
+- Sleep quality scoring
+- Daily readiness score (composite of HRV, sleep, training load)
+- Body Battery tracking
+
+### ✅ Training
+- Protocol library (CO₂ tables, O₂ tables, depth progression)
+- Working depth tracking
+- Training load monitoring
+- Session navigation (swipe between sessions)
+
+### ✅ Goals
+- Custom goal setting (depth, bottom time, dive count)
+- Progress tracking toward goals
+
+### ✅ Analytics
+- Long-term progression charts
+- PB timeline
+- Session comparison
+
+### ✅ Mobile UX
+- ApneaOS design system (dark theme, cyan accents)
+- Session sharing (formatted text export)
+- Session notes + conditions logging (water temp, visibility, current, etc.)
 
 ---
 
 ## Quick Start
 
-### Prerequisites
-- Garmin Descent G1 watch (or any Garmin with freediving support)
-- Garmin Connect account
-- Python 3.9+
-- VPS or local machine (already set up: `ubuntu-8gb-hel1-1`)
-
-### Installation
+### Backend
 ```bash
-# Clone or navigate to project
-cd /home/clawd/.openclaw/projects/garmin-freediving
+cd garmin-freediving
+backend/venv/bin/python -m backend.run
+# Runs on http://localhost:8504
+```
 
-# Set up Python environment
-python3 -m venv venv
-source venv/bin/activate
+### Mobile
+```bash
+cd garmin-freediving/mobile
+npx expo start --port 8081
+```
 
-# Install dependencies
-pip install garminconnect garth pandas numpy streamlit plotly
-
-# Configure credentials
+### Configuration
+```bash
 cp .env.example .env
-# Edit .env with your Garmin email/password
-```
-
-### Initial Sync
-```bash
-# Authenticate + test data extraction
-python garmin_sync.py --auth
-
-# Fetch last 7 days of data
-python garmin_sync.py --sync-days 7
-
-# Generate first readiness report
-python coach.py --daily-briefing
-```
-
-### Launch Dashboard
-```bash
-streamlit run dashboard/app.py
-# Visit http://37.27.201.10:8503
+# Set: GARMIN_EMAIL, GARMIN_PASSWORD, API_KEY
 ```
 
 ---
 
 ## Project Status
 
-### ✅ Phase 0: Planning (Current)
-- [x] Feasibility analysis
-- [x] Technical architecture
-- [x] Database schema design
-- [x] Project structure
-- [ ] Get Garmin credentials
-- [ ] Test data extraction with real account
+### ✅ Phase 0: Planning
+- Feasibility analysis, architecture design, database schema
 
-### 🚧 Phase 1: Foundation (Week 1)
-- [ ] Set up `python-garminconnect`
-- [ ] Build database schema (SQLite)
-- [ ] Create data pipeline
-- [ ] Test sync with 1 week of data
-- [ ] Validate dive data extraction
+### ✅ Phase 1: Foundation
+- python-garminconnect integration
+- SQLite database + data pipeline
+- Initial data sync
 
-### 📋 Phase 2: Analysis (Week 2)
-- [ ] HRV trend analyzer
-- [ ] Dive session parser
-- [ ] Readiness calculator
-- [ ] Basic dashboard (Streamlit)
+### ✅ Phase 2: Analysis
+- HRV analyzer, dive session parser, readiness calculator
+- AI dive classification (discipline + lung volume detection)
 
-### 🎯 Phase 3: Intelligence (Week 3)
-- [ ] Training plan generator
-- [ ] Workout templates
-- [ ] Automated recommendations
-- [ ] Discord notifications
+### ✅ Phase 3: Intelligence
+- Training plan generator, protocol library
+- Working depth tracking
+- User baselines
 
-### 🍎 Phase 4: Nutrition (Week 4)
-- [ ] Calorie calculator
-- [ ] Macro optimizer
-- [ ] Meal timing engine
-- [ ] Hydration tracker
+### ✅ Phase 4: Mobile App (ApneaOS)
+- Full Expo React Native app
+- Session detail, dive detail, analytics, goals
+- ApneaOS design system
+
+### 🚧 Phase 5: In Progress / Next Up
+- [ ] Push notifications for readiness and training reminders
+- [ ] Mares watch support (via libdivecomputer / UDDF import)
+- [ ] Competition taper planner
 
 ---
 
-## Data Privacy
+## Planned Features
 
-- **All data stored locally** on your VPS
-- **No third-party access** to your Garmin data
-- **Encrypted credentials** (Garth OAuth tokens)
-- **You own everything** - database, code, insights
+### 🎉 PB Celebrations (Community)
+Celebrate personal bests with friends — "PB cake" and "PB coffee" moments.
+- Notify friends when you hit a new PB
+- Friends can be prompted to celebrate when they hit theirs
+- Shared milestone feed
+- Foundation for broader community / social features
 
----
+### 👩 Women's Feature — Menstrual Cycle Tracking
+A dedicated section for women to log and correlate menstrual cycles with dive performance.
+- Cycle phase logging
+- Correlate phase with readiness score, depth, breath hold times
+- Personalized training recommendations based on cycle phase
+- Research-backed guidance on breath hold and equalization through cycle phases
 
-## Science Behind It
-
-### HRV (Heart Rate Variability)
-Elite freedivers show:
-- **Higher resting HRV** (enhanced parasympathetic activity)
-- **Faster recovery** between dives
-- **Lower resting heart rate** (~69 bpm vs 80+ untrained)
-
-**Practical use:** Daily HRV measurement predicts training readiness. Low HRV = rest or light training. High HRV = ready for depth work.
-
-### Training Load Management
-- **Acute-to-Chronic Load Ratio** (Garmin provides this)
-- Avoid overtraining (suppressed HRV + elevated resting HR)
-- Balance dive sessions with dry training (running, swimming)
-
-### Mammalian Dive Reflex
-- **HR drops during apnea** (bradycardia)
-- Track minimum HR during dives to measure adaptation
-- Improved reflex = better oxygen conservation = longer dives
+### 🏃 Cross-Training Impact Tracking
+Track how gym sessions, running, swimming, and other activities affect freediving performance.
+- Log cross-training sessions (type, duration, intensity)
+- Correlate with next-session readiness and dive performance
+- Identify which activities help vs. hinder recovery
+- Build a personal activity-to-performance model over time
 
 ---
 
 ## Roadmap
 
-### MVP (2-3 weeks)
-- Daily sync from Garmin
-- HRV/sleep/stress tracking
-- Dive log with progression charts
-- Basic readiness score
-- Training recommendations
-
-### Full System (1-2 months)
-- Advanced analytics (ML pattern detection)
-- Automated training plans
-- Nutrition optimization
+### Near Term
+- Push notifications
+- Mares / UDDF import support
 - Competition taper planner
-- Mobile-friendly dashboard
+- PB celebration & community features (see above)
 
-### Future (3+ months)
-- Video analysis (technique optimization)
-- Social features (compare with other freedivers)
-- Predictive modeling (forecast PBs)
-- Integration with other sensors (Moxy, O2 rings)
+### Medium Term
+- Women's cycle tracking (see above)
+- Cross-training impact tracker (see above)
+- Predictive modeling (forecast PBs based on training trends)
+- Apple Watch / HealthKit integration
+
+### Long Term
+- Multi-user / friends social layer
+- Video analysis for technique
+- Integration with other sensors (Moxy, O₂ rings)
 
 ---
 
-## Contributing
+## Data Privacy
 
-This is a personal project for Neko, but if you're a freediver interested in data-driven training, feel free to:
-- Star the repo
-- Report issues
-- Suggest features
-- Share your results
+- All data stored locally on your own server
+- No third-party access to Garmin data
+- Encrypted credentials via Garth OAuth tokens
+- You own everything
 
 ---
 
 ## Tech Stack
 
-- **Backend:** Python 3.9+
-- **API:** `python-garminconnect` + `garth`
-- **Database:** SQLite
-- **Analysis:** Pandas, NumPy, SciPy
-- **Dashboard:** Streamlit, Plotly
-- **Automation:** Cron
-- **Notifications:** Discord
-
----
-
-## License
-
-MIT - Build whatever you want with this.
+| Layer | Stack |
+|-------|-------|
+| Mobile | Expo, React Native, TypeScript, React Query |
+| Backend | Python 3.12, FastAPI, SQLite |
+| Garmin sync | python-garminconnect, garth, FIT SDK |
+| Analysis | Pandas, NumPy |
+| Infra | Ubuntu VPS, systemd / manual process |
 
 ---
 
 ## Contact
 
-Questions? Ping Neko on Discord.
-
-**Let's build something awesome.** 🚀
+Personal project for Neko. Questions? Discord.
