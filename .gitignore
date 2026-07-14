@@ -36,3 +36,6 @@ Thumbs.db
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Garmin FIT data files
+fit/

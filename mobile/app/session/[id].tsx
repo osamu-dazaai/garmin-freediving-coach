@@ -643,6 +643,7 @@ export default function SessionDetailScreen() {
               onToggle={() => setExpandedDive(
                 expandedDive === dive.dive_number ? null : dive.dive_number
               )}
+              sessionId={id ?? ''}
             />
           ))}
         </FadeIn>
@@ -940,14 +941,14 @@ function MiniChart({
 }
 
 // ── Dive detail link ──────────────────────────────────────────────────────────
-function DiveDetailLink({ dive, discColor }: { dive: IndividualDive; discColor: string }) {
+function DiveDetailLink({ dive, discColor, sessionId }: { dive: IndividualDive; discColor: string; sessionId: string }) {
   const router = useRouter();
   return (
     <TouchableOpacity
       style={dvStyles.detailLink}
       onPress={() => router.push({
         pathname: '/dive/[id]' as any,
-        params: { id: String(dive.dive_number), diveJson: JSON.stringify(dive) },
+        params: { id: String(dive.dive_number), sessionId, diveJson: JSON.stringify(dive) },
       })}
     >
       <MaterialIcons name="analytics" size={12} color={discColor} />
@@ -1048,9 +1049,9 @@ function DepthZoneBreakdown({
 
 // ── DiveRow ───────────────────────────────────────────────────────────────────
 function DiveRow({
-  dive, expanded, onToggle,
+  dive, expanded, onToggle, sessionId,
 }: {
-  dive: IndividualDive; expanded: boolean; onToggle: () => void;
+  dive: IndividualDive; expanded: boolean; onToggle: () => void; sessionId: string;
 }) {
   const cls = classifyDiscipline(dive);
   const discColor = DISC_COLOR[cls.discipline] ?? Colors.outline;
@@ -1183,7 +1184,7 @@ function DiveRow({
           )}
 
           {/* Detailed view link */}
-          <DiveDetailLink dive={dive} discColor={discColor} />
+          <DiveDetailLink dive={dive} discColor={discColor} sessionId={sessionId} />
         </View>
       )}
     </Pressable>

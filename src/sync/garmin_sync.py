@@ -10,11 +10,50 @@ import sqlite3
 import time
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from urllib.parse import urljoin
 from dotenv import load_dotenv
 from garminconnect import Garmin
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+def _patch_garth_for_proxy(garth_client):
+    """
+    Garmin blocks connectapi.garmin.com from datacenter IPs (401).
+    connect.garmin.com/modern/proxy/ serves the same paths and accepts
+    the same Bearer token. Monkey-patch garth's request method to
+    redirect all connectapi subdomain calls through the proxy.
+    """
+    _original_request = garth_client.sess.request.__self__.__class__.request \
+        if hasattr(garth_client.sess.request, '__self__') else None
+    original_request = garth_client.request.__func__
+
+    import garth.http as garth_http
+    from requests import Response
+
+    PROXY_BASE = "https://connect.garmin.com/modern/proxy"
+    PROXY_HEADERS = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        "NK": "NT",
+    }
+
+    def patched_request(self, method, subdomain, path, /, api=False, referrer=False, headers={}, **kwargs):
+        if subdomain == "connectapi":
+            url = f"{PROXY_BASE}{path}"
+            merged_headers = {**PROXY_HEADERS, **headers}
+            if api:
+                merged_headers["Authorization"] = str(self.oauth2_token)
+            self.last_resp = self.sess.request(method, url, headers=merged_headers, timeout=self.timeout, **kwargs)
+            try:
+                self.last_resp.raise_for_status()
+            except Exception as e:
+                from garth.exc import GarthHTTPError
+                raise GarthHTTPError(msg="Error in request", error=e)
+            return self.last_resp
+        return original_request(self, method, subdomain, path, api=api, referrer=referrer, headers=headers, **kwargs)
+
+    import types
+    garth_client.request = types.MethodType(patched_request, garth_client)
 
 class GarminSync:
     def __init__(self, email=None, password=None, db_path=None):
@@ -58,7 +97,8 @@ class GarminSync:
 
         print("🔐 Loading Garmin tokens from cache...")
         self.client = Garmin(self.email, self.password)
-        self.client.login(tokenstore=self.tokenstore)
+        self.client.garth.load(self.tokenstore)
+        _patch_garth_for_proxy(self.client.garth)
         print(f"✅ Logged in from token cache ({self.tokenstore})")
     
     def init_database(self):

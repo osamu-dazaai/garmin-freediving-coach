@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "ApneaOS",
+    "slug": "apneaos",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "scheme": "apneaos",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#060e1b",
+    "jsEngine": "hermes",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#060e1b"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.apneaos.app"
+    },
+    "android": {
+      "package": "com.apneaos.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#060e1b",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
